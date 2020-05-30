@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+     <Pattern>%date{E MMM dd yyyy HH:mm:ss aaa z} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+    </encoder>
+  </appender>
+
+  
+      <logger name="com.confluxsys">
+          <level value="DEBUG" />
+      </logger>
+	  
+	  <logger name="graphql.execution">
+          <level value="DEBUG" />
+      </logger>
+ 
+
+  <root level="warn">
+    <appender-ref ref="STDOUT"/>
+  </root>
+
+</configuration>

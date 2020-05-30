@@ -1,0 +1,1 @@
+export JAVA_OPTS="${JAVA_OPTS} -Dfile.encoding=UTF-8 -Xms256m -Xmx2048m -XX:PermSize=256m -XX:MaxPermSize=1024m  -Dorg.apache.activemq.SERIALIZABLE_PACKAGES=* -DHASTAAKSHAR_HOME=C:/opt/apps/hastaakshar"

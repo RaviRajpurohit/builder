@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.0.xsd
+	http://www.springframework.org/schema/jee http://www.springframework.org/schema/jee/spring-jee.xsd">
+
+    <bean id="applicationContext" class="com.hastaakshar.builder.ws.ApplicationRuntimeContext"/>
+
+    <bean
+            class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+        <property name="properties" ref="properties"/>
+    </bean>
+
+    <bean id="properties"
+          class="org.springframework.beans.factory.config.PropertiesFactoryBean">
+        <property name="locations">
+            <list>
+                <value>file:${HASTAAKSHAR_HOME}/conf/builder.properties</value>
+            </list>
+        </property>
+    </bean>
+
+    <!-- transaction management bean start -->
+    <tx:annotation-driven transaction-manager="transactionManager"/>
+    <bean id="transactionManager"
+          class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <constructor-arg name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean id="transactionTemplate"
+          class="org.springframework.transaction.support.TransactionTemplate">
+        <property name="transactionManager" ref="transactionManager"/>
+    </bean>
+    <!-- transaction management bean end -->
+
+    <jee:jndi-lookup id="dataSource" jndi-name="${builder.sql.data.source}"
+                     expected-type="javax.sql.DataSource"/>
+
+    <bean id="builderDAO" class="com.hastaakshar.builder.dao.BuilderDAO">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean id="builderManager" class="com.hastaakshar.builder.manager.BuilderManager">
+        <property name="builderDAO" ref="builderDAO"/>
+    </bean>
+
+</beans>
