@@ -22,6 +22,10 @@
                 com.hastaakshar.builder.ws
             </param-value>
 		</init-param>
+		<init-param>
+			<param-name>jersey.config.server.provider.classnames</param-name>
+			<param-value>org.glassfish.jersey.media.multipart.MultiPartFeature</param-value>
+		</init-param>
 		<load-on-startup>1</load-on-startup>
 	</servlet>
 	
@@ -41,7 +45,7 @@
 
 	<security-constraint>
 		<web-resource-collection>
-			<web-resource-name>Task Receiver</web-resource-name>
+			<web-resource-name>Hastaakshar Resume Builder</web-resource-name>
 			<url-pattern>/builder/*</url-pattern>
 		</web-resource-collection>
 		<auth-constraint>
@@ -56,28 +60,5 @@
 	<login-config>
 		<auth-method>BASIC</auth-method>
 	</login-config>
- <!--  
-	<context-param>
-		<param-name>resteasy.servlet.mapping.prefix</param-name>
-		<param-value>/iamws/hastaakshar</param-value>
-	</context-param>
-
-	<listener>
-		<listener-class>
-			org.jboss.resteasy.plugins.server.servlet.ResteasyBootstrap
-		</listener-class>
-	</listener>
-	<servlet>
-		<servlet-name>resteasy-servlet</servlet-name>
-		<servlet-class>
-			org.jboss.resteasy.plugins.server.servlet.HttpServletDispatcher
-		</servlet-class>
-	</servlet>
- 
-	<servlet-mapping>
-		<servlet-name>resteasy-servlet</servlet-name>
-		<url-pattern>/iamws/hastaakshar/*</url-pattern>
-	</servlet-mapping>-->
-
 
 </web-app>

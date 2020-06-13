@@ -1,5 +1,18 @@
 package com.hastaakshar.builder.ws;
 
+import com.hastaakshar.builder.common.InvalidDataException;
+import com.hastaakshar.builder.common.SystemFailureException;
+import com.hastaakshar.builder.manager.BuilderManager;
+import org.jboss.resteasy.plugins.providers.multipart.InputPart;
+import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
+import javax.ws.rs.*;
+import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+import javax.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.ParseException;
@@ -8,144 +21,132 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-import javax.ws.rs.Consumes;
-import javax.ws.rs.POST;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
-
-import org.jboss.resteasy.plugins.providers.multipart.InputPart;
-import org.jboss.resteasy.plugins.providers.multipart.MultipartFormDataInput;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import com.hastaakshar.builder.common.InvalidDataException;
-import com.hastaakshar.builder.common.SystemFailureException;
-import com.hastaakshar.builder.manager.BuilderManager;
-
 /**
  * @author Ravi
- *
  */
 @Path("/builder")
 public class BuilderService {
 
-	private BuilderManager builderManager;
+    private static final Logger logger = LoggerFactory.getLogger(BuilderService.class);
 
-	public BuilderService() throws SystemFailureException {
-		builderManager = ApplicationRuntimeContext.getBuilderManager();
-	}
+    private final BuilderManager builderManager;
 
-	private static final Logger logger = LoggerFactory.getLogger(BuilderService.class);
+    public BuilderService() {
+        builderManager = ApplicationRuntimeContext.getBuilderManager();
+    }
 
-	@POST
-	@Consumes("multipart/form-data")
-	@Produces({ MediaType.APPLICATION_JSON })
-	public Response storeData(MultipartFormDataInput input) {
+    @PUT
+    public void test(){
+        logger.info("builder service is up. please check other errors.");
+    }
 
-		if (input == null) {
-			logger.error("Required parameter is missing. data: {}", input);
-			return Response.ok("Input data is invalid.").status(400).build();
-		}
+    @POST
+    @Consumes("multipart/form-data")
+    @Produces({ MediaType.APPLICATION_JSON })
+    public Response storeData(MultipartFormDataInput input) {
 
-		try {
-			EmployeeInfo employeeInfo = this.getEmpoyeeInfo(input);
+        if (input == null) {
+            logger.error("Required parameter is missing.");
+            return Response.ok("Input data is invalid.").status(400).build();
+        }
 
-			EmployeeInfo storedEmployeeInfo = builderManager.storeEmployeeInfo(employeeInfo);
+        try {
+            EmployeeInfo employeeInfo = this.getEmpoyeeInfo(input);
 
-			return Response.ok(storedEmployeeInfo).status(200).build();
-		} catch (InvalidDataException e) {
-			logger.error("Input parameter : {}", input, e);
-			return Response.ok("Input data is invalid.").status(400).build();
-		} catch (SystemFailureException e) {
-			logger.error("", e);
-			return Response.ok("Error occurred while storing employee info. please check server logs.").status(500)
-					.build();
-		}
-	}
+            EmployeeInfo storedEmployeeInfo = builderManager.storeEmployeeInfo(employeeInfo);
 
-	private EmployeeInfo getEmpoyeeInfo(MultipartFormDataInput input) throws InvalidDataException {
-		try {
+            return Response.ok(storedEmployeeInfo).status(200).build();
+        } catch (InvalidDataException e) {
+            logger.error("Input parameter : {}", input, e);
+            return Response.ok("Input data is invalid.").status(400).build();
+        } catch (SystemFailureException e) {
+            logger.error("", e);
+            return Response.ok("Error occurred while storing employee info. please check server logs.").status(500)
+                    .build();
+        }
+    }
 
-			Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
-			List<InputPart> resumeInputParts = uploadForm.get("resume");
-			List<InputPart> nameInputParts = uploadForm.get("name");
-			List<InputPart> emailIdInputParts = uploadForm.get("email");
-			List<InputPart> phoneNumberInputParts = uploadForm.get("phone");
-			List<InputPart> dobInputParts = uploadForm.get("dob");
+    private EmployeeInfo getEmpoyeeInfo(MultipartFormDataInput input) throws InvalidDataException {
+        try {
 
-			if (resumeInputParts == null || resumeInputParts.isEmpty() || nameInputParts == null
-					|| nameInputParts.isEmpty() || emailIdInputParts == null || emailIdInputParts.isEmpty()
-					|| phoneNumberInputParts == null || phoneNumberInputParts.isEmpty() || dobInputParts == null
-					|| dobInputParts.isEmpty()) {
-				throw new InvalidDataException(
-						"Invalid parameters, Either resume file does not attached or name, email, phone or dob not provided. input : "
-								+ input);
-			}
-			EmployeeInfo employeeInfo = new EmployeeInfo();
+            Map<String, List<InputPart>> uploadForm = input.getFormDataMap();
+            List<InputPart> resumeInputParts = uploadForm.get("resume");
+            List<InputPart> nameInputParts = uploadForm.get("name");
+            List<InputPart> emailIdInputParts = uploadForm.get("email");
+            List<InputPart> phoneNumberInputParts = uploadForm.get("phone");
+            List<InputPart> dobInputParts = uploadForm.get("dob");
 
-			InputPart nameInputPart = nameInputParts.iterator().next();
-			if (nameInputPart.getBodyAsString() == null || nameInputPart.getBodyAsString().isEmpty()) {
-				throw new InvalidDataException("Invalid parameter, name parameter value not provided.");
-			}
-			employeeInfo.setName(nameInputPart.getBodyAsString());
+            if (resumeInputParts == null || resumeInputParts.isEmpty() || nameInputParts == null
+                    || nameInputParts.isEmpty() || emailIdInputParts == null || emailIdInputParts.isEmpty()
+                    || phoneNumberInputParts == null || phoneNumberInputParts.isEmpty() || dobInputParts == null
+                    || dobInputParts.isEmpty()) {
+                throw new InvalidDataException(
+                        "Invalid parameters, Either resume file does not attached or name, email, phone or dob not provided. input : "
+                                + input);
+            }
+            EmployeeInfo employeeInfo = new EmployeeInfo();
 
-			InputPart emailInputPart = emailIdInputParts.iterator().next();
-			if (emailInputPart.getBodyAsString() == null || emailInputPart.getBodyAsString().isEmpty()) {
-				throw new InvalidDataException("Invalid parameter, email parameter value not provided.");
-			}
-			employeeInfo.setEmailId(emailInputPart.getBodyAsString());
+            InputPart nameInputPart = nameInputParts.iterator().next();
+            if (nameInputPart.getBodyAsString() == null || nameInputPart.getBodyAsString().isEmpty()) {
+                throw new InvalidDataException("Invalid parameter, name parameter value not provided.");
+            }
+            employeeInfo.setName(nameInputPart.getBodyAsString());
 
-			InputPart phoneInputPart = phoneNumberInputParts.iterator().next();
-			if (phoneInputPart.getBodyAsString() == null || phoneInputPart.getBodyAsString().isEmpty()) {
-				throw new InvalidDataException("Invalid parameter, phone parameter value not provided.");
-			}
-			employeeInfo.setEmailId(emailInputPart.getBodyAsString());
+            InputPart emailInputPart = emailIdInputParts.iterator().next();
+            if (emailInputPart.getBodyAsString() == null || emailInputPart.getBodyAsString().isEmpty()) {
+                throw new InvalidDataException("Invalid parameter, email parameter value not provided.");
+            }
+            employeeInfo.setEmailId(emailInputPart.getBodyAsString());
 
-			InputPart dobInputPart = dobInputParts.iterator().next();
-			if (dobInputPart.getBodyAsString() == null || dobInputPart.getBodyAsString().isEmpty()) {
-				throw new InvalidDataException("Invalid parameter, phone parameter value not provided.");
-			}
-			Date dob = new SimpleDateFormat("yyyy-mm-dd").parse(dobInputPart.getBodyAsString());
-			employeeInfo.setDob(dob);
+            InputPart phoneInputPart = phoneNumberInputParts.iterator().next();
+            if (phoneInputPart.getBodyAsString() == null || phoneInputPart.getBodyAsString().isEmpty()) {
+                throw new InvalidDataException("Invalid parameter, phone parameter value not provided.");
+            }
+            employeeInfo.setEmailId(emailInputPart.getBodyAsString());
 
-			InputPart resumeInputPart = resumeInputParts.iterator().next();
+            InputPart dobInputPart = dobInputParts.iterator().next();
+            if (dobInputPart.getBodyAsString() == null || dobInputPart.getBodyAsString().isEmpty()) {
+                throw new InvalidDataException("Invalid parameter, phone parameter value not provided.");
+            }
+            Date dob = new SimpleDateFormat("yyyy-MM-dd").parse(dobInputPart.getBodyAsString());
+            employeeInfo.setDob(dob);
 
-			MultivaluedMap<String, String> header = resumeInputPart.getHeaders();
-			String fileType = getFileType(header);
+            InputPart resumeInputPart = resumeInputParts.iterator().next();
 
-			// convert the uploaded file to inputstream
-			InputStream resumeAsInputStream = resumeInputPart.getBody(InputStream.class, null);
-			employeeInfo.setResume(resumeAsInputStream);
-			employeeInfo.setResumeFileExtension(fileType);
+            MultivaluedMap<String, String> header = resumeInputPart.getHeaders();
+            String fileType = getFileType(header);
 
-			return employeeInfo;
-		} catch (IOException | ParseException e) {
-			logger.error("Error occurred while write data from parameter.", e);
-			throw new InvalidDataException("Error occurred while write data from parameter.", e);
-		}
-	}
+            // convert the uploaded file to inputstream
+            InputStream resumeAsInputStream = resumeInputPart.getBody(InputStream.class, null);
+            employeeInfo.setResume(resumeAsInputStream);
+            employeeInfo.setResumeFileExtension(fileType);
+
+            return employeeInfo;
+        } catch (IOException | ParseException e) {
+            logger.error("Error occurred while write data from parameter.", e);
+            throw new InvalidDataException("Error occurred while write data from parameter.", e);
+        }
+    }
 
 	/**
-	 * header sample { Content-Type=[image/png], Content-Disposition=[form-data;
+            * header sample { Content-Type=[image/png], Content-Disposition=[form-data;
 	 * name="file"; filename="filename.extension"] }
 	 **/
-	private String getFileType(MultivaluedMap<String, String> header) {
+    private String getFileType(MultivaluedMap<String, String> header) {
 
-		String[] contentDisposition = header.getFirst("Content-Disposition").split(";");
+        String[] contentDisposition = header.getFirst("Content-Disposition").split(";");
 
-		for (String filename : contentDisposition) {
-			if ((filename.trim().startsWith("filename"))) {
+        for (String filename : contentDisposition) {
+            if ((filename.trim().startsWith("filename"))) {
 
-				String[] name = filename.split("=");
+                String[] name = filename.split("=");
 
-				String finalFileName = name[1].trim().replaceAll("\"", "");
-				return finalFileName.substring(finalFileName.lastIndexOf("."));
-			}
-		}
-		logger.warn("Resume File does not have name");
-		return "unknown";
-	}
+                String finalFileName = name[1].trim().replaceAll("\"", "");
+                return finalFileName.substring(finalFileName.lastIndexOf("."));
+            }
+        }
+        logger.warn("Resume File does not have name");
+        return "unknown";
+    }
+
 }
